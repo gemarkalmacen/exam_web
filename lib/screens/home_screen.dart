@@ -3,6 +3,8 @@ import 'package:exam_web/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -164,6 +166,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+            
+            const SizedBox(height: 20),
+
+            if (geoData != null && geoData!['loc'] != null)
+              SizedBox(
+                height: 400,
+                child: FlutterMap(
+                  mapController: MapController(),
+                  options: MapOptions(
+                    initialCenter: LatLng(
+                      double.parse(geoData!['loc'].split(',')[0]),
+                      double.parse(geoData!['loc'].split(',')[1]),
+                    ),
+                    initialZoom: 10,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      subdomains: const ['a', 'b', 'c'],
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: LatLng(
+                            double.parse(geoData!['loc'].split(',')[0]),
+                            double.parse(geoData!['loc'].split(',')[1]),
+                          ),
+                          width: 80,
+                          height: 80,
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.location_pin,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+
             const SizedBox(height: 20),
 
             // Search History
