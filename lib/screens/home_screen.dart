@@ -15,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? geoData;
+  Set<String> selectedHistory = {};
+
   final TextEditingController ipController = TextEditingController();
   List<String> history = [];
   String? errorMessage;
@@ -35,6 +37,16 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
+
+  Future<void> deleteSelectedHistory() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    history.removeWhere((ip) => selectedHistory.contains(ip));
+    await prefs.setStringList('history', history);
+    setState(() {
+      selectedHistory.clear();
+    });
+  }
+
 
   Future<void> fetchUserGeo() async {
     try {
@@ -223,30 +235,69 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
 
             // Search History
-            if (history.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "HISTORY",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                children: [
+                  if (selectedHistory.isNotEmpty || history.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade300, // background color
+                        borderRadius: BorderRadius.circular(8), // optional rounded corners
+                      ),
+                      child: const Text(
+                        "HISTORY",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white, // text color
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+
+                  // Delete Selected Button
+                  if (selectedHistory.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        onPressed: deleteSelectedHistory,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text("Delete Selected"),
+                      ),
+                    ),
+
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView(
+                      children: history.map((ip) {
+                        return CheckboxListTile(
+                          value: selectedHistory.contains(ip),
+                          onChanged: (checked) {
+                            setState(() {
+                              if (checked == true) {
+                                selectedHistory.add(ip);
+                              } else {
+                                selectedHistory.remove(ip);
+                              }
+                            });
+                          },
+                          title: Text(ip),
+                          secondary: IconButton(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () => fetchGeoByIP(ip),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView(
-                  children: history
-                      .map((ip) => ListTile(
-                            title: Text(ip),
-                            onTap: () => fetchGeoByIP(ip),
-                          ))
-                      .toList(),
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),
