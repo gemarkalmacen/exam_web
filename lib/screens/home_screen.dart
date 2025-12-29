@@ -153,56 +153,67 @@ class _HomeScreenState extends State<HomeScreen> {
             if (errorMessage != null)
               Text(errorMessage!, style: const TextStyle(color: Colors.red)),
 
-            // Geo Info Display
-            if (geoData != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: geoData!.entries
-                        .map((e) => Text("${e.key}: ${e.value}"))
-                        .toList(),
-                  ),
-                ),
-              ),
-            
-            const SizedBox(height: 20),
-
             if (geoData != null && geoData!['loc'] != null)
               SizedBox(
-                height: 400,
-                child: FlutterMap(
-                  mapController: MapController(),
-                  options: MapOptions(
-                    initialCenter: LatLng(
-                      double.parse(geoData!['loc'].split(',')[0]),
-                      double.parse(geoData!['loc'].split(',')[1]),
-                    ),
-                    initialZoom: 10,
-                  ),
+                height: 400, // keep a fixed height for both
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TileLayer(
-                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: const ['a', 'b', 'c'],
+                    // Geo Info Card
+                    Expanded(
+                      flex: 1, // half of the width
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: geoData!.entries
+                                .map((e) => Text("${e.key}: ${e.value}"))
+                                .toList(),
+                          ),
+                        ),
+                      ),
                     ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: LatLng(
+
+                    const SizedBox(width: 20), // spacing between card & map
+
+                    // Map
+                    Expanded(
+                      flex: 1, // half of the width
+                      child: FlutterMap(
+                        mapController: MapController(),
+                        options: MapOptions(
+                          initialCenter: LatLng(
                             double.parse(geoData!['loc'].split(',')[0]),
                             double.parse(geoData!['loc'].split(',')[1]),
                           ),
-                          width: 80,
-                          height: 80,
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.location_pin,
-                            color: Colors.red,
-                            size: 40,
-                          ),
+                          initialZoom: 10,
                         ),
-                      ],
+                        children: [
+                          TileLayer(
+                            urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                            subdomains: const ['a', 'b', 'c'],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: LatLng(
+                                  double.parse(geoData!['loc'].split(',')[0]),
+                                  double.parse(geoData!['loc'].split(',')[1]),
+                                ),
+                                width: 80,
+                                height: 80,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.location_pin,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
